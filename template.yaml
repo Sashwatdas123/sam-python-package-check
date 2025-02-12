@@ -18,13 +18,13 @@ Resources:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: hello_world/
-      Handler: app.lambda_handler
+      Handler: newrelic_lambda_wrapper.handler
       Runtime: python3.13
 
       Environment:
         Variables:
           # For the instrumentation handler to invoke your real handler, we need this value
-          NEW_RELIC_LAMBDA_HANDLER: newrelic_lambda_wrapper.handler
+          NEW_RELIC_LAMBDA_HANDLER: app.lambda_handler
           # Distributed tracing needs your account ID, and your trusted account ID
           NEW_RELIC_ACCOUNT_ID: <NR_ACCOUNT_ID>
 
