@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-python
+
+  Sample SAM Template for sam-python
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    LoggingConfig:
+      LogFormat: JSON
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: hello_world/
+      Handler: app.lambda_handler
+      Runtime: python3.13
+
+      Environment:
+        Variables:
+          # For the instrumentation handler to invoke your real handler, we need this value
+          NEW_RELIC_LAMBDA_HANDLER: newrelic_lambda_wrapper.handler
+          # Distributed tracing needs your account ID, and your trusted account ID
+          NEW_RELIC_ACCOUNT_ID: <NR_ACCOUNT_ID>
+
+          NEW_RELIC_EXTENSION_LOG_LEVEL: DEBUG
+
+          NEW_RELIC_EXTENSION_SEND_EXTENSION_LOGS: true
+
+          NEW_RELIC_EXTENSION_SEND_FUNCTION_LOGS: true
+
+          NEW_RELIC_LICENSE_KEY: <YOUR-API-KEY>
+
+          NEW_RELIC_PACKAGE_REPORTING_ENABLED: <true/false>
+
+          NEW_RELIC_LOG_ENDPOINT: <STAGING-ENDPOINT>
+
+          NEW_RELIC_TELEMETRY_ENDPOINT: <STAGING_ENDPOINT>
+
+      Layers:
+        # This layer includes the New Relic Lambda extension, a sidecar process that sends telemetry,
+        # as well as the New Relic agent for Node.js, and a handler wrapper that makes integration easy.
+        - !Sub arn:aws:lambda:us-east-1:451483290750:layer:NewRelicPython313:3
+      
+      Policies:
+        # This policy allows the lambda to know the value of the New Relic license key. We need this so
+        # that we can send telemetry back to New Relic
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn: !ImportValue NewRelicLicenseKeySecret-NewRelic-LicenseKeySecretARN
+
+
+
+
+      Architectures:
+      - x86_64
+      
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+ 
+  HelloWorldFunction:
+    Description: Hello World Lambda Function ARN
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value: !GetAtt HelloWorldFunctionRole.Arn
